@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fruitopia</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Patrick Hand', cursive;
+            background-color: #ffffff;
+            background-image: url('assets/bg.gif');
+            background-size: cover;
+        }
+
+        #window {
+            position: relative;
+            width: 850px;
+            height: 600px;
+        }
+
+        #base-ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        #canvas-container {
+            position: absolute;
+            top: 130px;
+            left: 280px;
+            width: 530px;
+            height: 380px;
+            z-index: 2;
+        }
+
+        .options {
+            position: absolute;
+            z-index: 5;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .options:hover {
+            transform: scale(0.95);
+        }
+
+        .options:active {
+            transform: scale(0.95);
+        }
+
+        #btn-discard {
+            top: 14px;
+            right: 80px;
+            width: 65px;
+        }
+
+        #btn-save {
+            top: 13px;
+            right: 10px;
+            width: 60px;
+        }
+
+        #btn-mango {
+            top: 67px;
+            left: 365px;
+            width: 59px;
+        }
+
+        #btn-pear {
+            top: 67px;
+            left: 225px;
+            width: 60px;
+        }
+
+        #btn-gourd {
+            top: 67px;
+            left: 295px;
+            width: 60px;
+        }
+
+        #btn-paint {
+            top: 535px;
+            left: 390px;
+            width: 60px;
+        }
+
+        #btn-cursor {
+            top: 535px;
+            left: 460px;
+            width: 60px;
+        }
+
+        #btn-pen {
+            top: 535px;
+            left: 530px;
+            width: 60px;
+        }
+
+        #btn-eraser {
+            top: 535px;
+            left: 600px;
+            width: 60px;
+        }
+
+        .slider-group {
+            position: absolute;
+            width: 150px;
+            z-index: 5;
+        }
+
+        #group-p1x {
+            top: 125px;
+            left: 25px;
+        }
+
+        #group-p1y {
+            top: 245px;
+            left: 25px;
+        }
+
+        #group-p2x {
+            top: 365px;
+            left: 25px;
+        }
+
+        #group-p2y {
+            top: 480px;
+            left: 25px;
+        }
+
+        .readout {
+            position: absolute;
+            top: -15px;
+            left: 0;
+            transform: translateX(-50%);
+            font-size: 18px;
+            color: #111;
+        }
+
+        input[type=range] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+
+        input[type=range]:focus {
+            outline: none;
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 2px;
+            background: black;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 18px;
+            width: 18px;
+            background: #111;
+            border-radius: 50%;
+            cursor: pointer;
+            margin-top: -8px;
+        }
+
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 999999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: opacity 0.4s ease, visibility 0.4s;
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+
+        #splash-screen img {
+            width: auto;
+            height: 70%;
+            border-radius: 24px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .hide-splash {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+    </style>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+
+<body>
+
+    <div id="splash-screen">
+        <img src="assets/welcome.png" alt="Welcome!">
+    </div>
+
+    <div id="window">
+        <img id="base-ui" src="assets/outwindow.png" alt="Window">
+        <div id="canvas-container"></div>
+        <img src="assets/discard.png" alt="discard" id="btn-discard" class="options">
+        <img src="assets/save.png" alt="save" id="btn-save" class="options">
+        <img src="assets/cursor.png" alt="cursor" id="btn-cursor" class="options">
+        <img src="assets/paint.png" alt="paint" id="btn-paint" class="options">
+        <img src="assets/pen.png" alt="pen" id="btn-pen" class="options">
+        <img src="assets/eraser.png" alt="eraser" id="btn-eraser" class="options">
+        <img src="assets/pear.png" id="btn-pear" class="options" onclick="applyPreset(2.5, -1.0, 0.8, 1.2)">
+        <img src="assets/mango.png" id="btn-mango" class="options" onclick="applyPreset(1.8, -0.5, 1.2, 1.5)">
+        <img src="assets/gourd.png" id="btn-gourd" class="options" onclick="applyPreset(2.0, -1.5, 1.8, 0.8)">
+
+        <div class="slider-group" id="group-p1x">
+            <input type="range" id="p1x-slider" min="1" max="40" value="25">
+            <span class="readout" id="p1x-val">2.5</span>
+        </div>
+
+        <div class="slider-group" id="group-p1y">
+            <input type="range" id="p1y-slider" min="-20" max="20" value="-10">
+            <span class="readout" id="p1y-val">-1.0</span>
+        </div>
+
+        <div class="slider-group" id="group-p2x">
+            <input type="range" id="p2x-slider" min="1" max="40" value="8">
+            <span class="readout" id="p2x-val">0.8</span>
+        </div>
+
+        <div class="slider-group" id="group-p2y">
+            <input type="range" id="p2y-slider" min="-20" max="20" value="-12">
+            <span class="readout" id="p2y-val">1.2</span>
+        </div>
+    </div>
+
+    <script>
+        const canvasContainer = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, canvasContainer.clientWidth / canvasContainer.clientHeight, 0.1, 100);
+        camera.position.set(5, 4, 6);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        // Fixed dimension parameters for container divs
+        renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
+        renderer.setClearColor(0x000000, 0);
+        // Appending to the correct element frame container
+        canvasContainer.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(5, 10, 5);
+        scene.add(dirLight);
+
+        const colors = new Uint8Array([0, 128, 255]);
+        const gradientMap = new THREE.DataTexture(colors, 3, 1, THREE.LuminanceFormat);
+        gradientMap.minFilter = THREE.NearestFilter;
+        gradientMap.magFilter = THREE.NearestFilter;
+        gradientMap.generateMipmaps = false;
+        gradientMap.needsUpdate = true;
+
+        const material = new THREE.MeshToonMaterial({
+            color: 0xaadd55,
+            gradientMap: gradientMap,
+            side: THREE.DoubleSide
+        });
+
+        let fruitMesh;
+
+        function updateMesh() {
+
+            function moveReadout(sliderId, readoutId) {
+                const slider = document.getElementById(sliderId);
+                const readout = document.getElementById(readoutId);
+                const pct = (slider.value - slider.min) / (slider.max - slider.min);
+                readout.style.left = (pct * 100) + '%';
+            }
+            const p1x = document.getElementById('p1x-slider').value / 10;
+            const p1y = document.getElementById('p1y-slider').value / 10;
+            const p2x = document.getElementById('p2x-slider').value / 10;
+            const p2y = document.getElementById('p2y-slider').value / 10;
+
+            document.getElementById('p1x-val').innerText = p1x.toFixed(1);
+            document.getElementById('p1y-val').innerText = p1y.toFixed(1);
+            document.getElementById('p2x-val').innerText = p2x.toFixed(1);
+            document.getElementById('p2y-val').innerText = p2y.toFixed(1);
+
+            moveReadout('p1x-slider', 'p1x-val');
+            moveReadout('p1y-slider', 'p1y-val');
+            moveReadout('p2x-slider', 'p2x-val');
+            moveReadout('p2y-slider', 'p2y-val');
+
+            if (fruitMesh) {
+                scene.remove(fruitMesh);
+                fruitMesh.geometry.dispose();
+            }
+
+            const p0 = new THREE.Vector2(0, -2);
+            const p1 = new THREE.Vector2(p1x, p1y);
+            const p2 = new THREE.Vector2(p2x, p2y);
+            const p3 = new THREE.Vector2(0, 2);
+
+            const profileCurve = new THREE.CubicBezierCurve(p0, p1, p2, p3);
+            const profilePoints = profileCurve.getPoints(80);
+
+            const geometry = new THREE.LatheGeometry(profilePoints, 40);
+
+            fruitMesh = new THREE.Mesh(geometry, material);
+            scene.add(fruitMesh);
+        }
+
+        const sliders = document.querySelectorAll('input[type="range"]');
+        sliders.forEach(slider => {
+            slider.addEventListener('input', updateMesh);
+        });
+
+        window.applyPreset = function (p1x, p1y, p2x, p2y) {
+            document.getElementById('p1x-slider').value = p1x * 10;
+            document.getElementById('p1y-slider').value = p1y * 10;
+            document.getElementById('p2x-slider').value = p2x * 10;
+            document.getElementById('p2y-slider').value = p2y * 10;
+            updateMesh();
+        };
+
+        updateMesh();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = canvasContainer.clientWidth / canvasContainer.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
+        });
+
+        const greeting = document.getElementById('splash-screen');
+        greeting.addEventListener('click', () => {
+            greeting.classList.add('hide-splash');
+            setTimeout(() => {
+                greeting.remove();
+            }, 400);
+        });
+    </script>
+</body>
+
+</html>
