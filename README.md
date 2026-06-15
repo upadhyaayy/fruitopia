@@ -1,5 +1,4 @@
-# About Fruitopia
-![Fuitopia](https://img.shields.io/badge/Fruitopia🤜-🤛Hackclub-blue)
+# About Fruitopia ![Fuitopia](https://img.shields.io/badge/Fruitopia🤜-🤛Hackclub-blue)
 
 HOII! Have you ever looked at a mango and thought of why isn't it watermelon shaped?
 Well you can tweak the shapes now!!
